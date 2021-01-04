@@ -1,0 +1,49 @@
+#!/bin/bash
+
+## Note: will kill the top-most process if the $CPU_LOAD is greater than the $CPU_THRESHOLD.
+echo
+echo checking for run-away process ...
+
+TIMES=0
+PROCESS_NAME=firefox
+PID_PROCESS=$(pgrep $PROCESS_NAME)
+PID_PROCESSOR_USAGE=$(top -b -n1 | grep $PROCESS_NAME | awk '{ SUM += $9} END { print SUM }')
+CPU_THRESHOLD=50
+DATE=$(date)
+ for i in {0,1,2,3,4,5,6,7,8,9,10}
+  do
+  echo Checking process   : $PROCESS_NAME
+  echo Process proc usage : $PID_PROCESSOR_USAGE
+  echo Overload value     : $CPU_THRESHOLD
+
+  sleep 1
+  PID_PROCESSOR_USAGE=$(top -b -n1 | grep $PROCESS_NAME | awk '{ SUM += $9} END { print SUM }')
+  int=${PID_PROCESSOR_USAGE%.*}
+  echo This is int: $int
+  if [[ int -gt $CPU_THRESHOLD ]]; then
+  echo "Process overload"
+  let "TIMES+=1"
+  fi
+  done
+
+ if [[ $TIMES -eq  10]] ; then
+   echo "Kill overload process"
+   kill -9 $PID_PROCESS
+  # send an email using mail
+  SUBJECT="Runaway Process Report at Marysol"
+  # Email To ?
+   EMAIL="xxxxx@xxxxxx.xx"
+  # Email text/message
+   EMAILMESSAGE="/$HOME/script/emailmessage.txt"
+   echo "System overloading, possible runaway process."> $EMAILMESSAGE
+   echo "Top-most process killed $TOPPROCESS" >>$EMAILMESSAGE
+   echo "Load average was at $CPU_LOAD" >>$EMAILMESSAGE
+   echo "Active processes..." >>$EMAILMESSAGE
+   echo "$PROCESS" >>$EMAILMESSAGE
+   echo $DATE >>$EMAILMESSAGE
+   mail -s "$SUBJECT" "$EMAIL" < $EMAILMESSAGE
+
+
+ fi
+
+exit 0
