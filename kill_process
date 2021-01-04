@@ -26,7 +26,7 @@ DATE=$(date)
   fi
   done
 
- if [[ $TIMES -eq  10]] ; then
+ if [[ $TIMES -eq 10 ]] ; then
    echo "Kill overload process"
    kill -9 $PID_PROCESS
   # send an email using mail
